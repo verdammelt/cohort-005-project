@@ -1,4 +1,5 @@
 import { Outlet } from "react-router";
+import { useNotificationsPrototype } from "~/components/notifications-prototype";
 import type { Route } from "./+types/layout.app";
 import { Sidebar } from "~/components/sidebar";
 import { DevUI } from "~/components/dev-ui";
@@ -227,12 +228,20 @@ export default function AppLayout({ loaderData }: Route.ComponentProps) {
     isTeamAdmin: userIsTeamAdmin,
   } = loaderData;
 
+  const notifications = useNotificationsPrototype(
+    currentUser?.role ?? null,
+    userIsTeamAdmin
+  );
+
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar
         currentUser={currentUser}
         recentCourses={recentCourses}
         isTeamAdmin={userIsTeamAdmin}
+        headerSlot={notifications.headerSlot}
+        navSlot={notifications.navSlot}
+        sectionSlot={notifications.sectionSlot}
       />
       <main className="flex-1 overflow-y-auto">
         <Outlet />
@@ -245,6 +254,8 @@ export default function AppLayout({ loaderData }: Route.ComponentProps) {
         countries={countries}
       />
       <Toaster position="bottom-right" richColors closeButton />
+      {notifications.overlay}
+      {notifications.switcher}
     </div>
   );
 }
