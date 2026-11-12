@@ -3,6 +3,7 @@ import { Link, useFetcher, useNavigate } from "react-router";
 import { toast } from "sonner";
 import type { Route } from "./+types/courses.$slug.lessons.$lessonId";
 import { getCurrentUserId } from "~/lib/session";
+import { triggerDiscussionReply } from "~/lib/knock-prototype.server";
 import { getAccess, requireContentAccess } from "~/lib/access.server";
 import { renderComment } from "~/lib/comment-markdown.server";
 import {
@@ -900,12 +901,30 @@ export async function action({ params, request }: Route.ActionArgs) {
         if (!parsed.success) {
           return { ok: false, error: "Enter a comment before posting." };
         }
-        createComment(
+        const created = createComment(
           currentUserId,
           lessonId,
           parsed.data.parentId ?? null,
           parsed.data.body
         );
+        // PROTOTYPE (Knock spike, #30): a Discussion Reply notifies the
+        // question's author. Inline and fire-and-forget for the spike only.
+        const question = created.parentId
+          ? getCommentById(created.parentId)
+          : undefined;
+        if (question) {
+          triggerDiscussionReply({
+            replierId: currentUserId,
+            questionAuthorId: question.userId,
+            lessonId,
+            questionId: question.id,
+            replyId: created.id,
+            body: created.body,
+            url: `/courses/${slug}/lessons/${lessonId}`,
+          }).catch((e) =>
+            console.error("[knock-prototype] trigger failed", e)
+          );
+        }
         return { ok: true };
       }
 
