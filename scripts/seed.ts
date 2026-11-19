@@ -72,6 +72,8 @@ async function seed() {
 
   // Drop and recreate tables for a clean seed
   sqlite.exec(`
+    DROP TABLE IF EXISTS bookmarks;
+    DROP TABLE IF EXISTS notes;
     DROP TABLE IF EXISTS comments;
     DROP TABLE IF EXISTS course_ratings;
     DROP TABLE IF EXISTS video_watch_events;
@@ -1999,6 +2001,50 @@ This course is still in draft while the cluster examples are rewritten against t
 
   console.log(
     `Created ${countRows(schema.comments)} lesson comments across ${countRows(schema.comments, isNull(schema.comments.parentId))} threads.`
+  );
+
+  // ─── Bookmarks and Notes ───
+  // Private to the Student who made them. Emma has a few of each across both
+  // her Courses; Olivia has one of each. One Note has Markdown-looking
+  // characters, which should be shown exactly as typed.
+
+  db.insert(schema.bookmarks)
+    .values([
+      { userId: students[0].id, lessonId: course1LessonIds[2], createdAt: daysAgo(30) },
+      { userId: students[0].id, lessonId: course1LessonIds[5], createdAt: daysAgo(12) },
+      { userId: students[0].id, lessonId: course2LessonIds[3], createdAt: daysAgo(4) },
+      { userId: students[2].id, lessonId: course1LessonIds[1], createdAt: daysAgo(20) },
+    ])
+    .run();
+
+  db.insert(schema.notes)
+    .values([
+      {
+        userId: students[0].id,
+        lessonId: course1LessonIds[2],
+        body: "Generics click when I read <T> as \"some type the caller picks\".\nRe-watch the constraint part.",
+        createdAt: daysAgo(30),
+        updatedAt: daysAgo(9),
+      },
+      {
+        userId: students[0].id,
+        lessonId: course2LessonIds[3],
+        body: "# TODO\n* try PATCH vs PUT on my own API\n* look up idempotency keys",
+        createdAt: daysAgo(4),
+        updatedAt: daysAgo(4),
+      },
+      {
+        userId: students[2].id,
+        lessonId: course1LessonIds[1],
+        body: "Install went fine on Windows once I used the LTS Node.",
+        createdAt: daysAgo(20),
+        updatedAt: daysAgo(20),
+      },
+    ])
+    .run();
+
+  console.log(
+    `Created ${countRows(schema.bookmarks)} bookmarks and ${countRows(schema.notes)} notes.`
   );
 
   // ─── Lesson Progress ───
