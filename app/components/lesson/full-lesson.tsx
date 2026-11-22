@@ -11,13 +11,7 @@ import { CommentThread } from "~/components/comment-thread";
 import { LessonProgressStatus } from "~/db/schema";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
-import {
-  CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
-  Clock,
-  Github,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, Github } from "lucide-react";
 import { formatDuration } from "~/lib/utils";
 import { YouTubePlayer } from "~/components/youtube-player";
 import { lessonSections, type LessonSection } from "~/modules/lesson-layout";
@@ -26,6 +20,7 @@ import { BookmarkToggle } from "~/components/lesson/bookmark-toggle";
 import { LessonNote } from "~/components/lesson/lesson-note";
 import { CurriculumSidebar } from "~/components/lesson/curriculum-sidebar";
 import { QuizSection } from "~/components/lesson/quiz-section";
+import { LessonProgress } from "~/components/lesson/lesson-progress";
 
 type LessonLoaderData = Route.ComponentProps["loaderData"];
 
@@ -146,46 +141,13 @@ export function FullLesson({
       />
     ),
     progress: (
-      <div className="mb-8">
-        {isCompleted ? (
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 text-green-600">
-              <CheckCircle2 className="size-5" />
-              <span className="font-medium">Lesson completed</span>
-            </div>
-            {nextLesson && (
-              <Link to={`/courses/${course.slug}/lessons/${nextLesson.id}`}>
-                <Button variant="outline" size="sm">
-                  Up next: {nextLesson.title}
-                  <ChevronRight className="ml-1 size-4" />
-                </Button>
-              </Link>
-            )}
-          </div>
-        ) : nextLesson ? (
-          <fetcher.Form method="post">
-            <input type="hidden" name="intent" value="mark-complete" />
-            <Button disabled={isMarking}>
-              {isMarking ? (
-                "Completing..."
-              ) : (
-                <>
-                  Up next: {nextLesson.title}
-                  <ChevronRight className="ml-1 size-4" />
-                </>
-              )}
-            </Button>
-          </fetcher.Form>
-        ) : (
-          <fetcher.Form method="post">
-            <input type="hidden" name="intent" value="mark-complete" />
-            <Button disabled={isMarking}>
-              <CheckCircle2 className="mr-2 size-4" />
-              {isMarking ? "Marking..." : "Mark as Complete"}
-            </Button>
-          </fetcher.Form>
-        )}
-      </div>
+      <LessonProgress
+        courseSlug={course.slug}
+        nextLesson={nextLesson}
+        isCompleted={!!isCompleted}
+        isMarking={isMarking}
+        fetcher={fetcher}
+      />
     ),
     note: <LessonNote note={note} />,
     // Questions & Discussion — confidential to people with access
